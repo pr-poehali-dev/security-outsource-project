@@ -4,8 +4,11 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
+import AdminLogin from '@/components/AdminLogin';
+import ContentBlockEditor from '@/components/ContentBlockEditor';
 
 const Index = () => {
   const [formData, setFormData] = useState({
@@ -16,7 +19,71 @@ const Index = () => {
     message: ''
   });
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [adminLoginOpen, setAdminLoginOpen] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [adminToken, setAdminToken] = useState<string>('');
+  const [editPanelOpen, setEditPanelOpen] = useState(false);
+  const [currentSection, setCurrentSection] = useState('');
+  const [contentBlocks, setContentBlocks] = useState<any[]>([]);
   const { toast } = useToast();
+
+  useEffect(() => {
+    const token = localStorage.getItem('admin_token');
+    if (token) {
+      verifyToken(token);
+    }
+    fetchContentBlocks();
+  }, []);
+
+  const verifyToken = async (token: string) => {
+    try {
+      const response = await fetch('https://functions.poehali.dev/705135e1-95d1-462c-acde-20e9528eb51e', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'verify', token })
+      });
+      const data = await response.json();
+      if (data.valid) {
+        setAdminToken(token);
+        setEditMode(true);
+      } else {
+        localStorage.removeItem('admin_token');
+      }
+    } catch (error) {
+      console.error('Token verification failed', error);
+    }
+  };
+
+  const fetchContentBlocks = async () => {
+    try {
+      const response = await fetch('https://functions.poehali.dev/a81ff4d9-0486-47d8-adb8-6cbb33b71396');
+      const data = await response.json();
+      setContentBlocks(data.blocks || []);
+    } catch (error) {
+      console.error('Error fetching content blocks:', error);
+    }
+  };
+
+  const handleLoginSuccess = (token: string) => {
+    setAdminToken(token);
+    setEditMode(true);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('admin_token');
+    setAdminToken('');
+    setEditMode(false);
+    setEditPanelOpen(false);
+    toast({
+      title: "Выход выполнен",
+      description: "Режим редактирования отключен"
+    });
+  };
+
+  const openEditPanel = (section: string) => {
+    setCurrentSection(section);
+    setEditPanelOpen(true);
+  };
 
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
@@ -464,11 +531,68 @@ const Index = () => {
               </ul>
             </div>
           </div>
-          <div className="mt-12 pt-8 border-t border-border text-center text-sm text-muted-foreground">
-            © 2024 SecureGuard. Все права защищены.
+          <div className="mt-12 pt-8 border-t border-border text-center">
+            <div className="text-sm text-muted-foreground mb-2">
+              © 2024 SecureGuard. Все права защищены.
+            </div>
+            <div className="flex justify-center gap-4 items-center">
+              {editMode ? (
+                <>
+                  <Button
+                    onClick={() => openEditPanel('custom')}
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs text-gold/60 hover:text-gold"
+                  >
+                    <Icon name="Edit" size={14} className="mr-1" />
+                    Редактировать контент
+                  </Button>
+                  <Button
+                    onClick={handleLogout}
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs text-gold/60 hover:text-gold"
+                  >
+                    <Icon name="LogOut" size={14} className="mr-1" />
+                    Выйти
+                  </Button>
+                </>
+              ) : (
+                <button
+                  onClick={() => setAdminLoginOpen(true)}
+                  className="text-xs text-muted-foreground/40 hover:text-gold/60 transition-colors"
+                >
+                  Редактировать
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </footer>
+
+      <AdminLogin 
+        open={adminLoginOpen} 
+        onOpenChange={setAdminLoginOpen}
+        onLoginSuccess={handleLoginSuccess}
+      />
+
+      <Sheet open={editPanelOpen} onOpenChange={setEditPanelOpen}>
+        <SheetContent className="bg-background border-gold overflow-y-auto w-full sm:max-w-xl">
+          <SheetHeader>
+            <SheetTitle className="text-gold">Редактирование контента</SheetTitle>
+            <SheetDescription className="text-muted-foreground">
+              Добавляйте или удаляйте текстовые блоки и изображения
+            </SheetDescription>
+          </SheetHeader>
+          <div className="mt-6">
+            <ContentBlockEditor 
+              section={currentSection}
+              token={adminToken}
+              onUpdate={fetchContentBlocks}
+            />
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 };
