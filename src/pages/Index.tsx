@@ -128,7 +128,7 @@ const Index = () => {
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center gap-2">
             <Icon name="Shield" className="text-gold" size={32} />
-            <span className="text-xl font-bold text-gold">SecureGuard</span>
+            <span className="text-xl font-bold text-gold">Защита бизнеса</span>
           </div>
           <div className="hidden md:flex gap-8">
             <button onClick={() => scrollToSection('about')} className="text-muted-foreground hover:text-gold transition-colors">О компании</button>
