@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -15,7 +15,31 @@ const Index = () => {
     email: '',
     message: ''
   });
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { toast } = useToast();
+
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      const offset = 80;
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - offset;
+      
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+      setMobileMenuOpen(false);
+    }
+  };
+
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+  }, [mobileMenuOpen]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -107,16 +131,40 @@ const Index = () => {
             <span className="text-xl font-bold text-gold">SecureGuard</span>
           </div>
           <div className="hidden md:flex gap-8">
-            <a href="#about" className="text-muted-foreground hover:text-gold transition-colors">О компании</a>
-            <a href="#services" className="text-muted-foreground hover:text-gold transition-colors">Услуги</a>
-            <a href="#cases" className="text-muted-foreground hover:text-gold transition-colors">Кейсы</a>
-            <a href="#blog" className="text-muted-foreground hover:text-gold transition-colors">Блог</a>
-            <a href="#contact" className="text-muted-foreground hover:text-gold transition-colors">Контакты</a>
+            <button onClick={() => scrollToSection('about')} className="text-muted-foreground hover:text-gold transition-colors">О компании</button>
+            <button onClick={() => scrollToSection('services')} className="text-muted-foreground hover:text-gold transition-colors">Услуги</button>
+            <button onClick={() => scrollToSection('cases')} className="text-muted-foreground hover:text-gold transition-colors">Кейсы</button>
+            <button onClick={() => scrollToSection('blog')} className="text-muted-foreground hover:text-gold transition-colors">Блог</button>
+            <button onClick={() => scrollToSection('contact')} className="text-muted-foreground hover:text-gold transition-colors">Контакты</button>
           </div>
-          <Button className="bg-gold text-black hover:bg-gold-light">
-            Консультация
-          </Button>
+          <div className="flex items-center gap-4">
+            <Button className="hidden md:block bg-gold text-black hover:bg-gold-light" onClick={() => scrollToSection('contact')}>
+              Консультация
+            </Button>
+            <button 
+              className="md:hidden text-gold"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label="Меню"
+            >
+              <Icon name={mobileMenuOpen ? "X" : "Menu"} size={28} />
+            </button>
+          </div>
         </div>
+        
+        {mobileMenuOpen && (
+          <div className="md:hidden absolute top-full left-0 w-full bg-black/95 backdrop-blur-md border-b border-border animate-fade-in">
+            <div className="container mx-auto px-4 py-6 flex flex-col gap-4">
+              <button onClick={() => scrollToSection('about')} className="text-left text-lg text-muted-foreground hover:text-gold transition-colors py-2">О компании</button>
+              <button onClick={() => scrollToSection('services')} className="text-left text-lg text-muted-foreground hover:text-gold transition-colors py-2">Услуги</button>
+              <button onClick={() => scrollToSection('cases')} className="text-left text-lg text-muted-foreground hover:text-gold transition-colors py-2">Кейсы</button>
+              <button onClick={() => scrollToSection('blog')} className="text-left text-lg text-muted-foreground hover:text-gold transition-colors py-2">Блог</button>
+              <button onClick={() => scrollToSection('contact')} className="text-left text-lg text-muted-foreground hover:text-gold transition-colors py-2">Контакты</button>
+              <Button className="w-full bg-gold text-black hover:bg-gold-light mt-4" onClick={() => scrollToSection('contact')}>
+                Консультация
+              </Button>
+            </div>
+          </div>
+        )}
       </nav>
 
       <section className="pt-32 pb-20 px-4">
@@ -132,12 +180,12 @@ const Index = () => {
                 Профессиональные услуги корпоративной безопасности: от проверки контрагентов 
                 до защиты информации и противодействия внутренним угрозам
               </p>
-              <div className="flex gap-4">
-                <Button size="lg" className="bg-gold text-black hover:bg-gold-light">
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Button size="lg" className="bg-gold text-black hover:bg-gold-light" onClick={() => scrollToSection('contact')}>
                   <Icon name="Calendar" className="mr-2" size={20} />
                   Записаться на консультацию
                 </Button>
-                <Button size="lg" variant="outline" className="border-gold text-gold hover:bg-gold/10">
+                <Button size="lg" variant="outline" className="border-gold text-gold hover:bg-gold/10" onClick={() => scrollToSection('about')}>
                   Узнать больше
                 </Button>
               </div>
